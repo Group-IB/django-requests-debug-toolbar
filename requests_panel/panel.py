@@ -66,9 +66,8 @@ class PatchedSession(requests.Session):
 
     def send(self, request, **kwargs):
         response = super().send(request, **kwargs)
-        if response.history:
-            response = response.history[0]
-        collector.collect(RequestInfo(request, response, kwargs))
+        real_response = response.history[0] if response.history else response
+        collector.collect(RequestInfo(request, real_response, kwargs))
         return response
 
 
