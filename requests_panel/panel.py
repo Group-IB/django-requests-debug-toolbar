@@ -42,7 +42,7 @@ class RequestInfo:
     @cached_property
     def request_body(self):
         if self.request.body:
-            if self.request.headers['content-type'] == 'application/json':
+            if self.request.headers.get('content-type') == 'application/json':
                 return self._format_json(self.request.body)
         return self.request.body
 
@@ -54,7 +54,7 @@ class RequestInfo:
     @cached_property
     def response_content(self):
         if self.response.content:
-            if self.response.headers['content-type'] == 'application/json':
+            if self.response.headers.get('content-type') == 'application/json':
                 return self._format_json(self.response.content)
         return self.response.content
 
@@ -66,7 +66,8 @@ class PatchedSession(requests.Session):
 
     def send(self, request, **kwargs):
         response = super().send(request, **kwargs)
-        collector.collect(RequestInfo(request, response, kwargs))
+        real_response = response.history[0] if response.history else response
+        collector.collect(RequestInfo(request, real_response, kwargs))
         return response
 
 
